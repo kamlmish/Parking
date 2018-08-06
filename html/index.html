@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Ticketing System</h2>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="./qwebchannel.js"></script>
+
+<form action="http://localhost:80/index.html" method="post">
+<br>
+<label for="Entry">Date Time : </label><input id="newticket" type="datetime-local" />
+<br>
+VehicleNo:<br>
+<input type="text" id="carno" name="VehicleNo" width="40">
+<br>
+VehicleModel:<br>
+<select id="carmodel">
+  <option value="SUV" width="10">SUV</option>
+  <option value="LMV" width="10">LMV</option>
+  <option value="MUV" width="10">MUV</option>
+  <option value="TWO WHEELER" width="10">Bike</option>
+</select>
+<br>
+<br>
+<input type="submit" id="send" value="New Ticket" onClick="javascript:click();">
+</form>
+<script type="text/javascript">
+	    function output(message)
+            {
+                var output = document.getElementById("output");
+               // output.innerHTML = output.innerHTML + message + "\n";
+            }
+            window.onload = function() {
+                if (location.search != "")
+                    var baseUrl = "ws://localhost:8080";
+                else
+                    var baseUrl = "ws://localhost:8080";
+
+                output("Connecting to WebSocket server at " + baseUrl + ".");
+                var socket = new WebSocket(baseUrl);
+
+                socket.onclose = function() {
+                    console.error("web channel closed");
+                };
+                socket.onerror = function(error) {
+                    console.error("web channel error: " + error);
+                };
+                socket.onopen = function() {
+                    output("WebSocket connected, setting up QWebChannel.");
+                    new QWebChannel(socket, function(channel) {
+                        // make core object accessible globally
+                        window.core = channel.objects.core;
+
+                        document.getElementById("send").onclick = function() {
+                            var input1 = document.getElementById("newticket");
+                            var input2 = document.getElementById("carno");
+                            var input3 = document.getElementById("carmodel");
+                            var text = input1.value+"@"+input2.value+"@"+input3.value;
+                            if (!text) {
+                                return;
+                            }
+
+                            output("Sent message: " + text);
+                            //textt.value = "";
+                            core.receiveText(text);
+                        }
+
+                        core.sendText.connect(function(message) {
+                            output("Received message: " + message);
+                        });
+
+                        //core.receiveText("Client connected, ready to send/receive messages!");
+                    });
+                }
+            }
+</script>
+</body>
+</html>
